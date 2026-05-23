@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 챗봇</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css') }}">
+</head>
+
+<body>
+
+<header class="top-nav">
+    <div class="logo">AI 시간표 추천</div>
+
+    <nav class="menu">
+        <a href="{{ url_for('main.home') }}">홈</a>
+        <a href="{{ url_for('recommend.priority') }}">시간표 추천</a>
+        <a href="#">졸업요건</a>
+        <a href="{{ url_for('chatbot.chatbot_page') }}">AI 챗봇</a>
+    </nav>
+</header>
+
+<div class="chat-page">
+    <div class="chat-container">
+        <h1>AI 시간표 챗봇</h1>
+        <p class="chat-desc">시간표 추천 기준, 공강, 난이도, 졸업요건에 대해 질문해보세요.</p>
+
+        <div id="chat-box" class="chat-box">
+            <div class="bot-message">
+                안녕하세요. 성신여자대학교 AI융합학부 AI 수강 추천 챗봇입니다.
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="message" placeholder="질문을 입력하세요">
+            <button type="button" onclick="sendMessage()">전송</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function sendMessage() {
+        const input = document.getElementById("message");
+        const message = input.value.trim();
+
+        if (!message) {
+            return;
+        }
+
+        const chatBox = document.getElementById("chat-box");
+
+        chatBox.innerHTML += `
+            <div class="user-message">${message}</div>
+        `;
+
+        input.value = "";
+
+        try {
+            const response = await fetch("{{ url_for('chatbot.ask_chatbot') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: message
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                chatBox.innerHTML += `
+                    <div class="bot-message">${data.answer || "오류가 발생했습니다."}</div>
+                `;
+                return;
+            }
+
+            chatBox.innerHTML += `
+                <div class="bot-message">${data.answer}</div>
+            `;
+
+        } catch (error) {
+            console.error(error);
+
+            chatBox.innerHTML += `
+                <div class="bot-message">서버와 연결하는 중 오류가 발생했습니다.</div>
+            `;
+        }
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    document.getElementById("message").addEventListener("keydown", function(event) {
+        if (event.key === "Enter") {
+            sendMessage();
+        }
+    });
+</script>
+
+</body>
+</html>
