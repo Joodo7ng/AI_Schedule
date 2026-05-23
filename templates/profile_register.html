@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로필 등록</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
+</head>
+<body>
+
+<div class="profile-container">
+    <form action="{{ url_for('profile.register_profile') }}" method="POST" class="profile-form">
+
+        <h2>프로필 등록하기</h2>
+        <p class="subtitle">시간표 추천을 위해 기본 정보를 입력해주세요</p>
+
+        <div class="form-group">
+            <label>이름</label>
+            <input
+                type="text"
+                name="name"
+                placeholder="이름을 입력하세요"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label>학번</label>
+            <input
+                type="number"
+                name="student_id"
+                placeholder="예: 20251234"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label>학년</label>
+            <select name="grade" required>
+                <option value="">선택하세요</option>
+                <option value="1">1학년</option>
+                <option value="2">2학년</option>
+                <option value="3">3학년</option>
+                <option value="4">4학년</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>학기</label>
+            <select name="target_semester" required>
+                <option value="">선택하세요</option>
+                <option value="1">1학기</option>
+                <option value="2">2학기</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>트랙</label>
+
+            <div class="track-options">
+                <input type="radio" id="ai" name="track" value="AI" required hidden>
+                <label for="ai" class="track-btn">AI</label>
+
+                <input type="radio" id="iot" name="track" value="IoT" hidden>
+                <label for="iot" class="track-btn">IoT</label>
+            </div>
+        </div>
+
+        <button type="submit" class="save-btn">저장</button>
+
+    </form>
+</div>
+
+</body>
+</html>
