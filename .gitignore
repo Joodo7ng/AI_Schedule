@@ -4,3 +4,4 @@ __pycache__/
 venv/
 vector_db/
 instance/.vscode/
+flask_session/

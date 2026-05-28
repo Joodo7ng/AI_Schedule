@@ -2,6 +2,13 @@
     flex: 0 0 560px;
 }
 
+.total-credits {
+    margin-top: 4px;
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+}
+
 .timetable-card {
     width: 560px;
     background: white;

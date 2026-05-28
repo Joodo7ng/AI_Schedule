@@ -34,6 +34,20 @@ def has_time_conflict(timetable):
     return False
 
 
+def has_duplicate_code(timetable):
+    """학수번호(code)가 동일한 분반이 같이 들어가 있으면 True.
+    같은 과목의 다른 분반(예: 이산수학-1, 이산수학-2)을 동시에 추천하지 않도록 방지."""
+    seen_codes = set()
+    for c in timetable:
+        code = c.get("code", "")
+        if not code:
+            continue
+        if code in seen_codes:
+            return True
+        seen_codes.add(code)
+    return False
+
+
 def filter_courses(courses, user_pref):
     """절대조건 필터: 학기 매치 + 빈 데이터 제거."""
     target_semester = user_pref.get("target_semester", 1)
@@ -112,6 +126,9 @@ def generate_timetables(
             if abs(credits - target_credits_value) > credit_tolerance:
                 continue
             full = list(required) + list(combo)
+            # 분반 중복 체크: 같은 과목(code)이 두 개 들어가면 스킵
+            if has_duplicate_code(full):
+                continue
             if has_time_conflict(full):
                 continue
             candidates.append(full)

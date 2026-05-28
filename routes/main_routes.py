@@ -8,6 +8,13 @@ def home():
     profile = session.get("profile")
     user_schedules = session.get("user_schedules", [])
 
+    # 세션에 저장된 추천 결과 불러오기 (페이지 이동 후에도 시간표 유지)
+    result = session.get("result")
+    if result and isinstance(result, dict):
+        timetable = result.get("timetable", [])
+    else:
+        timetable = []
+
     grouped_schedules = {}
 
     for schedule in user_schedules:
@@ -20,10 +27,10 @@ def home():
 
     return render_template(
         "home.html",
-        timetable=[],
+        timetable=timetable,
         user_schedules=user_schedules,
         grouped_schedules=grouped_schedules,
-        result=None,
+        result=result,
         profile=profile
     )
 

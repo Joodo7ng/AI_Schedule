@@ -23,11 +23,13 @@
 <div class="timetable-page">
     <div class="result-container">
 
+        {% set total_credits = result.timetable | sum(attribute='credit') %}
         <div class="timetable-section">
             <div class="section-header">
                 <div>
                     <p class="semester">2026년 1학기</p>
                     <h2>추천 시간표</h2>
+                    <p class="total-credits">총 {{ total_credits }}학점</p>
                 </div>
                 <span class="score-badge">{{ result.weighted_score }}점</span>
             </div>

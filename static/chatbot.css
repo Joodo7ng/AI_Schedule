@@ -68,7 +68,7 @@ body {
 }
 
 .chat-box {
-    height: 420px;
+    height: 520px;
     overflow-y: auto;
     border: 1px solid #eeeeee;
     border-radius: 14px;
@@ -126,5 +126,22 @@ body {
 
 .input-area button:hover {
     background: #534b5d;
+}
+
+
+
+.reset-btn {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.reset-btn:hover {
+    background: #e5e7eb;
 }
 

@@ -27,9 +27,13 @@
         <div class="result-container">
 
             <!-- 왼쪽 시간표 -->
+            {% set total_credits = timetable | sum(attribute='credit') %}
             <section class="timetable-section">
                 <p class="semester">2026년 1학기</p>
                 <h2>시간표 1</h2>
+                {% if total_credits %}
+                    <p class="total-credits">총 {{ total_credits }}학점</p>
+                {% endif %}
 
                 <div class="timetable-card">
                     <div class="timetable-header">
