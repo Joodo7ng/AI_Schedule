@@ -1,0 +1,203 @@
+body {
+    margin: 0;
+    background: #f4f7fb;
+    font-family: "Pretendard", "Noto Sans KR", sans-serif;
+    color: #111827;
+}
+
+.graduation-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 64px 24px;
+}
+
+.graduation-header {
+    margin-bottom: 36px;
+}
+
+.step-label {
+    margin: 0 0 10px;
+    color: #5b7cfa;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
+
+.graduation-header h1 {
+    margin: 0;
+    font-size: 38px;
+    font-weight: 900;
+}
+
+.graduation-header p {
+    margin-top: 14px;
+    max-width: 680px;
+    color: #6b7280;
+    font-size: 16px;
+    line-height: 1.7;
+}
+
+.requirement-card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+    margin-top: 36px;
+}
+
+.requirement-card {
+    position: relative;
+    height: 260px;
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 28px;
+    box-shadow: 0 16px 40px rgba(31, 41, 55, 0.09);
+    overflow: hidden;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.requirement-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 24px 55px rgba(31, 41, 55, 0.16);
+}
+
+.card-front,
+.card-detail {
+    transition: 0.25s ease;
+}
+
+.card-front span {
+    font-size: 15px;
+    font-weight: 800;
+    color: #6b7280;
+}
+
+.card-front strong {
+    display: block;
+    margin-top: 18px;
+    font-size: 44px;
+    font-weight: 900;
+    color: #6875f5;
+}
+
+.card-front p {
+    margin-top: 14px;
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.6;
+}
+
+.card-detail {
+    position: absolute;
+    inset: 0;
+    padding: 28px;
+    background: #6875f5;
+    color: white;
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.requirement-card:hover .card-front {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+.requirement-card:hover .card-detail {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.card-detail h3 {
+    margin: 0 0 18px;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.card-detail p {
+    font-size: 14px;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.card-detail ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.card-detail li {
+    margin-bottom: 12px;
+    font-size: 15px;
+    line-height: 1.5;
+}
+
+.card-detail b {
+    font-weight: 900;
+}
+
+.total-card .card-detail {
+    background: #111827;
+}
+
+/* 자유선택 카드는 내용이 많아서 폰트·간격을 살짝 줄임 */
+.free-card .card-detail {
+    padding: 22px 20px;
+}
+
+.free-card .card-detail h3 {
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.free-card .card-detail p {
+    font-size: 12px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+
+.free-card .card-detail ul {
+    padding-left: 16px;
+}
+
+.free-card .card-detail li {
+    margin-bottom: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.notice-box {
+    margin-top: 28px;
+    padding: 22px 24px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 20px;
+}
+
+.notice-box strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #c2410c;
+    font-size: 15px;
+}
+
+.notice-box p {
+    margin: 0;
+    color: #7c2d12;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+@media (max-width: 1000px) {
+    .requirement-card-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .requirement-card-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .requirement-card {
+        height: 240px;
+    }
+}

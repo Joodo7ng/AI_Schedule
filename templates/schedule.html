@@ -1,0 +1,50 @@
+<section class="fixed-schedule-card">
+    <div class="schedule-header">
+        <div>
+            <h3>내 고정 일정 확인</h3>
+            <p>알바, 개인 일정 등 시간표 추천에서 제외할 시간을 설정하세요.</p>
+        </div>
+
+        <a href="{{ url_for('schedule.add_schedule') }}" class="add-schedule-btn">
+            + 일정 추가
+        </a>
+    </div>
+
+    <div class="schedule-list">
+        {% if grouped_schedules %}
+            {% for day, schedules in grouped_schedules.items() %}
+                <div class="schedule-item">
+                    <strong class="schedule-day">{{ day }}요일</strong>
+
+                    <div class="schedule-times">
+                        {% for schedule in schedules %}
+                            <div class="fixed-row">
+                                <span>
+                                    {{ schedule.start_time }} - {{ schedule.end_time }}
+                                    · {{ schedule.schedule_type }}
+                                </span>
+
+                                <form
+                                    action="{{ url_for('schedule.delete_schedule') }}"
+                                    method="POST"
+                                >
+                                    <input type="hidden" name="day" value="{{ day }}">
+                                    <input type="hidden" name="index" value="{{ loop.index0 }}">
+
+                                    <button type="submit" class="delete-schedule-btn" aria-label="일정 삭제">
+                                        -
+                                    </button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endfor %}
+
+        {% else %}
+            <div class="empty-schedule">
+                등록된 고정 일정이 없습니다.
+            </div>
+        {% endif %}
+    </div>
+</section>

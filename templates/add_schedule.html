@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>일정 추가</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='scheduleForm.css') }}">
+     <link rel="stylesheet" href="{{ url_for('static', filename='schedule.css') }}">
+</head>
+<body>
+
+<div class="schedule-page">
+    <div class="schedule-card">
+        <h2>고정 일정 추가</h2>
+        <p>시간표 추천에서 제외할 시간을 설정하세요.</p>
+
+        <form action="{{ url_for('schedule.add_schedule') }}" method="post">
+            <div class="section">
+                <label>요일 선택 (복수 선택 가능)</label>
+
+                <div class="day-buttons">
+                    <button type="button" class="day-btn" data-day="월">월</button>
+                    <button type="button" class="day-btn" data-day="화">화</button>
+                    <button type="button" class="day-btn" data-day="수">수</button>
+                    <button type="button" class="day-btn" data-day="목">목</button>
+                    <button type="button" class="day-btn" data-day="금">금</button>
+                </div>
+
+                    <div id="selected-days-container"></div>
+            </div>
+
+            <div class="section">
+                <label>시작 시간</label>
+
+                <div class="time-select-row">
+                    <select name="start_ampm">
+                        <option value="AM">오전</option>
+                        <option value="PM">오후</option>
+                    </select>
+
+                    <select name="start_hour">
+                        {% for h in range(1, 13) %}
+                            <option value="{{ h }}">{{ h }}시</option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="start_minute">
+                        {% for m in range(0, 60, 10) %}
+                            <option value="{{ '%02d'|format(m) }}">
+                                {{ '%02d'|format(m) }}분
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <label>종료 시간</label>
+
+                <div class="time-select-row">
+                    <select name="end_ampm">
+                        <option value="AM">오전</option>
+                        <option value="PM">오후</option>
+                    </select>
+
+                    <select name="end_hour">
+                        {% for h in range(1, 13) %}
+                            <option value="{{ h }}">{{ h }}시</option>
+                        {% endfor %}
+                    </select>
+
+                    <select name="end_minute">
+                        {% for m in range(0, 60, 10) %}
+                            <option value="{{ '%02d'|format(m) }}">
+                                {{ '%02d'|format(m) }}분
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="section">
+                <label>일정 종류</label>
+
+                <select name="schedule_type">
+                    <option value="알바">알바</option>
+                    <option value="개인">개인시간</option>
+                    <option value="기타">기타</option>
+                </select>
+            </div>
+
+            <button type="submit" class="save-btn">저장</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const dayButtons = document.querySelectorAll(".day-btn");
+    const container = document.getElementById("selected-days-container");
+
+    dayButtons.forEach(button => {
+        button.addEventListener("click", () => {
+            const day = button.dataset.day;
+
+            if (button.classList.contains("active")) {
+                button.classList.remove("active");
+
+                const existingInput = document.querySelector(
+                    `input[name="days"][value="${day}"]`
+                );
+
+                if (existingInput) {
+                    existingInput.remove();
+                }
+
+            } else {
+                button.classList.add("active");
+
+                const input = document.createElement("input");
+                input.type = "hidden";
+                input.name = "days";
+                input.value = day;
+
+                container.appendChild(input);
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

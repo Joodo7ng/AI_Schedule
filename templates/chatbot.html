@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>AI 챗봇</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='chatbot.css') }}">
+</head>
+
+<body>
+
+<header class="top-nav">
+    <div class="logo">AI 시간표 추천</div>
+
+    <nav class="menu">
+        <a href="{{ url_for('main.home') }}">홈</a>
+        <a href="{{ url_for('recommend.priority') }}">시간표 추천</a>
+        <a href="{{ url_for('main.graduation') }}">졸업요건</a>
+        <a href="{{ url_for('chatbot.chatbot_page') }}">AI 챗봇</a>
+    </nav>
+</header>
+
+<div class="chat-page">
+    <div class="chat-container">
+        <h1>AI 시간표 챗봇</h1>
+        <p class="chat-desc">시간표 추천 기준, 공강, 난이도, 졸업요건에 대해 질문해보세요.</p>
+
+        <div id="chat-box" class="chat-box">
+            <div class="bot-message">안녕하세요. 성신여자대학교 AI융합학부 AI 수강 추천 챗봇입니다.</div>
+            {% if chatbot_history %}
+                {% for msg in chatbot_history %}
+                    {% if msg.role == "user" %}
+                        <div class="user-message">{{ msg.content }}</div>
+                    {% else %}
+                        <div class="bot-message">{{ msg.content }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="message" placeholder="질문을 입력하세요">
+            <button type="button" onclick="sendMessage()">전송</button>
+            <button type="button" class="reset-btn" onclick="resetChat()">대화 초기화</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 중복 전송 방지 플래그 (응답 받기 전 또 누르는 거 방지)
+    let isSending = false;
+
+    async function sendMessage() {
+        if (isSending) return;  // 이미 전송 중이면 무시
+
+        const input = document.getElementById("message");
+        const message = input.value.trim();
+
+        if (!message) {
+            return;
+        }
+
+        isSending = true;
+
+        const chatBox = document.getElementById("chat-box");
+        const sendBtn = document.querySelector(".input-area button:not(.reset-btn)");
+
+        // 버튼 비활성화 (사용자가 또 누르는 거 방지)
+        if (sendBtn) {
+            sendBtn.disabled = true;
+            sendBtn.style.opacity = "0.5";
+        }
+
+        chatBox.innerHTML += `
+            <div class="user-message">${message}</div>
+        `;
+
+        input.value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            const response = await fetch("{{ url_for('chatbot.ask_chatbot') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: message
+                })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                chatBox.innerHTML += `
+                    <div class="bot-message">${data.answer || "오류가 발생했습니다."}</div>
+                `;
+                return;
+            }
+
+            chatBox.innerHTML += `
+                <div class="bot-message">${data.answer}</div>
+            `;
+
+        } catch (error) {
+            console.error(error);
+
+            chatBox.innerHTML += `
+                <div class="bot-message">서버와 연결하는 중 오류가 발생했습니다.</div>
+            `;
+        } finally {
+            // 전송 상태 해제, 버튼 복구
+            isSending = false;
+            if (sendBtn) {
+                sendBtn.disabled = false;
+                sendBtn.style.opacity = "1";
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
+    document.getElementById("message").addEventListener("keydown", function(event) {
+        // 한글 IME 조합 중이면 무시 (한글 + Enter 중복 전송 방지)
+        if (event.isComposing || event.keyCode === 229) {
+            return;
+        }
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // 대화 초기화
+    async function resetChat() {
+        if (!confirm("대화 기록을 모두 지울까요?")) return;
+
+        try {
+            await fetch("{{ url_for('chatbot.reset_chat') }}", { method: "POST" });
+            location.reload();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    // 페이지 로드 시 스크롤 맨 아래로
+    window.addEventListener("load", function() {
+        const chatBox = document.getElementById("chat-box");
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
+</script>
+
+</body>
+</html>

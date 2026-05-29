@@ -1,0 +1,146 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+}
+
+.top-nav {
+    width: 100%;
+    height: 64px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #eeeeee;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 40px;
+    box-sizing: border-box;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: #222;
+}
+
+.menu {
+    display: flex;
+    gap: 28px;
+}
+
+.menu a {
+    text-decoration: none;
+    color: #555;
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.menu a:hover {
+    color: #ad6aff;
+}
+
+.chat-page {
+    display: flex;
+    justify-content: center;
+    padding-top: 50px;
+}
+
+.chat-container {
+    width: 560px;
+    background: white;
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.chat-container h1 {
+    margin: 0;
+    text-align: center;
+    font-size: 26px;
+}
+
+.chat-desc {
+    text-align: center;
+    color: #666666;
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.chat-box {
+    height: 520px;
+    overflow-y: auto;
+    border: 1px solid #eeeeee;
+    border-radius: 14px;
+    padding: 16px;
+    background: #fafafa;
+}
+
+.bot-message,
+.user-message {
+    display: table;
+    width: fit-content;
+    max-width: 75%;
+    margin: 10px 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+.bot-message {
+    background: #eeeeee;
+    color: #222222;
+    margin-right: auto;
+    white-space: pre-line;
+}
+
+.user-message {
+    background: #4f7cff;
+    color: white;
+    margin-left: auto;
+}
+.input-area {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.input-area input {
+    flex: 1;
+    padding: 13px;
+    border: 1px solid #dddddd;
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.input-area button {
+    padding: 13px 20px;
+    border: none;
+    border-radius: 10px;
+    background: #844db2;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.input-area button:hover {
+    background: #534b5d;
+}
+
+
+
+.reset-btn {
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px 14px;
+    margin-left: 8px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.reset-btn:hover {
+    background: #e5e7eb;
+}

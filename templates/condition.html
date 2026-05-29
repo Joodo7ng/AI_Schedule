@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>절대조건 설정</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='timetable.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='condition.css') }}">
+</head>
+<body>
+        <header class="top-nav">
+        <div class="logo">에융이타임</div>
+
+        <nav class="menu">
+            <a href="{{ url_for('main.home') }}">홈</a>
+            <a href="{{ url_for('recommend.priority') }}">시간표 추천</a>
+            <a href="{{ url_for('main.graduation') }}">졸업요건</a>
+            <a href="{{ url_for('chatbot.chatbot_page') }}">AI 챗봇</a>
+        </nav>
+    </header>
+    
+    <div class="condition-page">
+        <form action="/result" method="post" class="condition-card">
+            <p class="step-label">STEP 2</p>
+            <h1>절대조건 설정</h1>
+            <p class="sub-text">추천 시간표에 반드시 반영할 조건을 선택해주세요.</p>
+
+            <input type="hidden" name="empty_day" value="{{ priorities.empty_day }}">
+            <input type="hidden" name="morning" value="{{ priorities.morning }}">
+            <input type="hidden" name="difficulty" value="{{ priorities.difficulty }}">
+            <input type="hidden" name="graduation" value="{{ priorities.graduation }}">
+
+            <div class="form-group">
+                <label for="max_credit">최대 신청 학점</label>
+                <div class="input-box">
+                    <input type="number" id="max_credit" name="max_credit" value="18" min="12" max="21">
+                    <span>학점</span>
+                </div>
+            </div>
+
+            <label class="check-card">
+                <input type="checkbox" name="avoid_first_period">
+                <div>
+                    <strong>1교시 수업 피하기</strong>
+                    <p>오전 수업을 최소화한 시간표를 추천합니다.</p>
+                </div>
+            </label>
+
+            <button type="submit" class="submit-btn">추천 결과 보기</button>
+        </form>
+    </div>
+</body>
+</html>

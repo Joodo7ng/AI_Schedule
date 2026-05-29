@@ -1,6 +1,5 @@
 """
 LLM이 추천 시간표에 대한 자연어 설명을 생성.
-
 """
 
 import os
@@ -11,7 +10,7 @@ load_dotenv()
 
 client = OpenAI(
     api_key=os.getenv("GROQ_API_KEY"),
-    base_url="https://api.groq.com/openai/v1"
+    base_url="https://api.groq.com/openai/v1",
 )
 
 LABEL_MAP = {
@@ -24,65 +23,149 @@ LABEL_MAP = {
 
 def _format_timetable(timetable):
     lines = []
+
     for c in timetable:
         lines.append(
-            f"- {c.get('name','')} ({c.get('day','')}{c.get('period','')}교시, "
-            f"{c.get('credit',0)}학점, {c.get('category','')})"
+            f"- {c.get('name', '')} "
+            f"({c.get('day', '')}{c.get('period', '')}교시, "
+            f"{c.get('credit', 0)}학점, "
+            f"{c.get('category', '')})"
         )
+
     return "\n".join(lines)
 
 
 def _format_scores(scores, priority):
     lines = []
+
     for k in priority:
-        lines.append(f"- {LABEL_MAP.get(k, k)}: {scores.get(k, 0)}점")
+        lines.append(
+            f"- {LABEL_MAP.get(k, k)}: {scores.get(k, 0)}점"
+        )
+
     return "\n".join(lines)
 
 
-def build_prompt(timetable, scores, user_pref):
-    priority = user_pref.get("priority_ranking", ["time", "gap", "graduation", "style"])
-    priority_text = " > ".join([LABEL_MAP.get(k, k) for k in priority])
+def _format_score_breakdown(scores, priority):
+    """가중치 적용 계산식을 줄 단위로 보여줌 (LLM이 그대로 인용할 수 있게)."""
+    weights = [0.40, 0.30, 0.20, 0.10]
+    weight_labels = ["40%", "30%", "20%", "10%"]
+    lines = []
+    total = 0.0
+    for i, k in enumerate(priority):
+        if i >= len(weights):
+            break
+        score = float(scores.get(k, 0))
+        contrib = score * weights[i]
+        total += contrib
+        lines.append(
+            f"- {i+1}순위 {LABEL_MAP.get(k, k)}: {score:.0f}점 × {weight_labels[i]} = {contrib:.2f}점"
+        )
+    lines.append(f"→ 합계 (종합 점수): {total:.2f}점")
+    return "\n".join(lines)
 
-    return f"""아래 시간표를 사용자에게 추천하는 이유를 자연스럽게 2-3문장으로 설명해주세요.
 
-[추천 시간표]
-{_format_timetable(timetable)}
+def build_prompt(timetable, scores, user_pref,weighted_score=None):
+    priority = user_pref.get(
+        "priority_ranking",
+        ["time", "gap", "graduation", "style"]
+    )
 
-[사용자가 매긴 우선순위]
-{priority_text}
+    top_priority_key = priority[0]
+    top_priority = LABEL_MAP.get(top_priority_key, top_priority_key)
+    weighted_text = f"{weighted_score}점" if weighted_score is not None else "정보 없음"
+    score_breakdown = _format_score_breakdown(scores, priority)
+    total_score = scores.get("total_score", scores.get("total", 0))
+    style_score = scores.get("style", 0)
+    time_score = scores.get("time", 0)
+    gap_score = scores.get("gap", 0)
+    graduation_score = scores.get("graduation", 0)
+    
 
-[항목별 점수 (0~100)]
-{_format_scores(scores, priority)}
+    course_names = ", ".join(
+        [c.get("name", "") for c in timetable]
+    )
 
-작성 가이드:
-- 사용자의 1순위 항목이 어떻게 충족됐는지 먼저 언급
-- 점수가 낮은 항목이 있다면 솔직히 말해주기
-- 친근한 존댓말, 2-3문장 분량
+    return f"""
+      대학교 선배가 후배에게 시간표 추천 이유를 친근하게 설명한다고 생각하고, 
+      한국어로 3~4문장 작성해주세요.
+
+[종합 점수]
+{weighted_text}
+
+## 절대 하지 말아야 할 것 (AI 티남)
+1. **"1순위 X, 2순위 Y, 3순위 Z, 4순위 W" 식으로 4개 순위를 줄줄이 나열하지 마세요.** 자연스러운 사람 말투에서는 그렇게 안 함.
+2. **"가중치 반영해", "순서대로 합산해", "X점 × Y%" 같은 기계적인 계산 설명 금지.**
+3. **"균형 잡힌 구성", "만족도 높은 추천", "생활 리듬과 학업 목표" 같은 영혼 없는 일반론 금지.**
+4. **매 답변마다 똑같은 패턴 금지.** "1순위로 두신 X에 맞춰..."로 시작하는 거 한 번이면 충분.
+5. 점수 풀이를 모든 항목에 대해 일일이 하지 마세요. 중요한 1~2개만.
+
+## 자연스럽게 쓰는 법
+- 사용자가 **중요하게 본 항목 1~2개**만 자연스럽게 언급. ("학업스타일하고 공강을 가장 중요하게 보셨던 만큼...")
+- 실제 시간표에 들어간 **과목/카테고리를 1~2개 구체적으로 언급**. ("AI융합개론이랑 이산수학 같은 핵심전공도 챙기고")
+- 종합 점수는 한 번만 자연스럽게. ("종합 99.54점이라")
+- 점수가 낮은 항목이 있으면 솔직히 한 줄. (없으면 생략)
+- 마무리는 그 시간표/학기에 맞게 구체적으로. (일반론 금지)
+
+## 예시 출력 (이렇게 사람처럼 써주세요)
+
+[예시 1 — 1학년 2학기, 학업스타일>공강>졸업>시간대, 모두 95~100점, 종합 99.54점]
+학업스타일하고 공강을 가장 중요하게 보셨는데, 두 항목 다 만점으로 깔끔하게 맞춰졌어요. 1학년 2학기에 들어야 할 핵심전공인 이산수학·AI융합개론을 챙기면서 필수교양 비판적사고와토론까지 자연스럽게 넣어서, 졸업요건도 97점대로 함께 잘 정리됐고요. 종합 99.54점이라 한 학기 부담 없이 보내실 수 있을 거예요.
+
+[예시 2 — 2학년 1학기, 시간대>공강>졸업>학업스타일, 95/80/60/70, 종합 84점]
+1교시 피하고 싶다고 하신 만큼 오전을 최대한 비워뒀어요. 자료구조·인공지능 같은 2학년 핵심전공이 들어갔는데, 졸업요건 점수가 60점으로 좀 낮게 나온 게 아쉬워요. 다음 학기에 핵심교양 한두 개 더 챙기시면 좋을 것 같고, 일단 이번 학기는 원하시던 시간대로 잘 잡혔어요.
+
+[예시 3 — 1학년 1학기, 공강>졸업>학업스타일>시간대, 90/85/75/60, 종합 82.5점]
+공강일을 가장 신경 쓰셔서 화·목 공강이 확실하게 잡혔어요. 필수교양인 창조적사고와글쓰기랑 1학년 핵심전공이 골고루 들어가서 졸업요건도 85점으로 함께 잘 챙겨졌고, 종합 82.5점이에요. 시간대 점수가 좀 낮긴 한데 공강 우선이셨으니까 이 정도면 만족스러우실 거예요.
+
+이제 위 예시 톤으로 자연스럽게 써주세요. 절대 "1순위, 2순위, 3순위, 4순위" 같은 기계적 나열 금지.
+
+[추천 정보]
+추천 점수: {total_score}
+1순위 항목: {top_priority}
+학업스타일 점수: {style_score}
+시간대 점수: {time_score}
+공강/연강 점수: {gap_score}
+졸업요건 점수: {graduation_score}
+포함 과목: {course_names}
+
+위 정보를 바탕으로 사용자에게 시간표 추천 이유를 설명하라.
 """
 
 
-def generate_explanation(timetable, scores, user_pref, model="llama-3.3-70b-versatile"):
-    """LLM을 호출해 추천 이유 문장을 반환."""
-
+def generate_explanation(
+    timetable,
+    scores,
+    user_pref,
+    weighted_score=None, model="openai/gpt-oss-120b"
+):
     if not os.environ.get("GROQ_API_KEY"):
         return "(GROQ_API_KEY 환경변수가 설정되어 있지 않아요)"
 
-    prompt = build_prompt(timetable, scores, user_pref)
+    prompt = build_prompt(timetable, scores, user_pref, weighted_score=weighted_score)
 
     response = client.chat.completions.create(
         model=model,
         messages=[
             {
                 "role": "system",
-                "content": "너는 대학생 시간표 추천 결과를 쉽고 정확하게 설명하는 assistant야."
+                "content": (
+                    "너는 대학 시간표 추천 설명 생성기다. "
+                    "반드시 한국어 자연어 문장만 출력한다. "
+                    "JSON, 리스트, 코드 형식은 절대 출력하지 않는다."
+                ),
             },
             {
                 "role": "user",
-                "content": prompt
-            }
+                "content": prompt,
+            },
         ],
         temperature=0.2,
-        max_tokens=400
+        max_tokens=500,
     )
 
-    return response.choices[0].message.content.strip()
+    explanation = response.choices[0].message.content.strip()
+    print("LLM 원본 설명:", explanation)
+    # 마지막 줄에 챗봇 안내 문구 추가
+    explanation += "\n\n더 궁금하신 부분은 챗봇을 통해 물어봐주세요!"
+    return explanation

@@ -1,0 +1,60 @@
+/* common.css */
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    background: linear-gradient(135deg, #f7f5ff 0%, #f4f6ff 45%, #fafafa 100%);
+    padding: 0;
+}
+
+body {
+    padding-top: 64px;
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+}
+
+.top-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    width: 100%;
+    height: 64px;
+    z-index: 9999;
+
+    background: #ffffff;
+    border-bottom: 1px solid #eeeeee;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 48px;
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: 800;
+    color: #111827;
+}
+
+.menu {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+}
+
+.menu a {
+    text-decoration: none;
+    color: #444;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.section-header {
+    min-height: 92px;
+}

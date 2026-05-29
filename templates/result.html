@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>추천 시간표</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='timetable.css') }}">
+</head>
+
+<body>
+
+<header class="top-nav">
+    <div class="logo">에융이타임</div>
+
+    <nav class="menu">
+        <a href="{{ url_for('main.home') }}">홈</a>
+        <a href="{{ url_for('recommend.priority') }}">시간표 추천</a>
+        <a href="{{ url_for('main.graduation') }}">졸업요건</a>
+        <a href="{{ url_for('chatbot.chatbot_page') }}">AI 챗봇</a>
+    </nav>
+</header>
+
+<body>
+
+<div class="timetable-page">
+    <div class="result-container">
+
+        <div class="timetable-section">
+            <div class="section-header">
+                <div>
+                    <p class="semester">2026년 1학기</p>
+                    <h2>추천 시간표</h2>
+                </div>
+                <span class="score-badge">{{ result.weighted_score }}점</span>
+            </div>
+
+            <div class="timetable-card">
+                <div class="timetable-header">
+                    <div></div>
+                    <div>월</div>
+                    <div>화</div>
+                    <div>수</div>
+                    <div>목</div>
+                    <div>금</div>
+                </div>
+
+                <div class="timetable-grid">
+                    {% for hour in range(9, 18) %}
+                        <div class="time-cell">{{ hour }}</div>
+
+                        {% for day in ["월", "화", "수", "목", "금"] %}
+                            <div class="grid-cell">
+                                {% for course in result.timetable %}
+                                    {% if course.day == day and course.period == hour - 8 %}
+                                        <div class="course-block color-{{ loop.index }}" style="--course-height: {{ course.credit * 100 }}%;">
+                                            <strong>{{ course.name }}</strong>
+                                            <span>{{ course.category }}</span>
+                                            <small>{{ course.credit }}학점</small>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="analysis-card">
+            <h2>추천 분석</h2>
+
+            <div class="score-text">
+                추천 점수 <strong>{{ result.weighted_score }}점</strong>
+            </div>
+
+            <p class="analysis-text">{{ explanation | replace('\n', '<br>') | safe }}</p>
+
+            <form action="/register" method="post">
+                <button type="submit" class="register-btn">등록</button>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

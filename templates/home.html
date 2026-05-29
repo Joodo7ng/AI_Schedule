@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>에융이타임</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='common.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='timetable.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='schedule.css') }}">
+</head>
+
+<body>
+    <header class="top-nav">
+        <div class="logo">에융이타임</div>
+
+        <nav class="menu">
+            <a href="{{ url_for('main.home') }}">홈</a>
+            <a href="{{ url_for('recommend.priority') }}">시간표 추천</a>
+            <a href="{{ url_for('main.graduation') }}">졸업요건</a>
+            <a href="{{ url_for('chatbot.chatbot_page') }}">AI 챗봇</a>
+        </nav>
+    </header>
+
+    <main class="timetable-page">
+
+        <div class="result-container">
+
+            <!-- 왼쪽 시간표 -->
+            <section class="timetable-section">
+                <p class="semester">2026년 1학기</p>
+                <h2>시간표 1</h2>
+
+                <div class="timetable-card">
+                    <div class="timetable-header">
+                        <div></div>
+                        <div>월</div>
+                        <div>화</div>
+                        <div>수</div>
+                        <div>목</div>
+                        <div>금</div>
+                    </div>
+
+                    <div class="timetable-grid">
+                        {% for hour in range(9, 18) %}
+                            <div class="time-cell">{{ hour }}</div>
+
+                            {% for day in ["월", "화", "수", "목", "금"] %}
+                                <div class="grid-cell">
+                                    {% for course in timetable %}
+                                        {% if course.day == day and course.period == hour - 8 %}
+                                            <div
+                                                class="course-block color-{{ loop.index }}"
+                                                style="--course-height: {{ course.credit * 100 }}%;"
+                                            >
+                                                <strong>{{ course.name }}</strong>
+                                                <span>{{ course.category }}</span>
+                                                <small>{{ course.credit }}학점</small>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- 오른쪽 패널 -->
+            <aside class="right-panel">
+
+            <section class="profile-card">
+                
+                <a href="{{ url_for('profile.register_profile') }}" class="edit-profile-btn">
+                    프로필 수정
+                </a>               
+                    {% if profile %}
+                        <div class="profile-header">
+                            <div class="profile-avatar">
+                                {{ profile.name[0] }}
+                            </div>
+
+                            <div class="profile-info">
+                                <h3>{{ profile.name }}</h3>
+                     
+                                <div class="profile-meta">
+                                    <div class="profile-dept">
+                                        {{ profile.student_id }} · AI융합학부
+                                    </div>
+                                   
+                                   <div class="profile-academic">
+                                        {{ profile.grade }}학년 {{ profile.target_semester }}학기
+                                   </div>
+                                </div>
+                            </div>
+                        </div> 
+                        
+                        <div class="profile-section">
+                            <label>트랙</label>
+
+                            <div class="track-buttons">
+                                <button
+                                    type="button"
+                                    class="{% if profile.track == 'AI' %}active{% endif %}"
+                                >
+                                    AI
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="{% if profile.track == 'IoT' %}active{% endif %}"
+                                >
+                                    IoT
+                                </button>
+                            </div>
+                        </div>
+
+                    {% else %}
+                        <!-- 프로필 없을 때 -->
+                        <div class="empty-profile">
+                            <div class="empty-icon">👤</div>
+
+                            <h3>프로필 등록하기</h3>
+                            <p>
+                                정확한 시간표 추천을 위해<br>
+                                기본 정보를 먼저 등록해주세요.
+                            </p>
+
+                            <a
+                                href="{{ url_for('profile.register_profile') }}"
+                                class="profile-register-btn"
+                            >
+                                프로필 등록하기
+                            </a>
+                        </div>
+                    {% endif %}
+
+                </section>
+
+                <!-- 고정 일정 -->
+                {% include "schedule.html" %}
+
+            </aside>
+
+        </div>
+
+    </main>
+</body>
+</html>
