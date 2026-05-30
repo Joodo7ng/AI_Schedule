@@ -16,7 +16,8 @@ client = OpenAI(
 
 LABEL_MAP = {
     "time": "시간대",
-    "gap": "공강/연강",
+    "gap": "공강",
+    "empty_day": "공강",      # 가연님 코드와 호환 (priority_ranking이 'empty_day' 사용)
     "graduation": "졸업요건",
     "style": "학업스타일",
 }
@@ -29,6 +30,25 @@ def _format_timetable(timetable):
             f"- {c.get('name','')} ({c.get('day','')}{c.get('period','')}교시, "
             f"{c.get('credit',0)}학점, {c.get('category','')})"
         )
+    return "\n".join(lines)
+
+
+def _format_day_analysis(timetable):
+    """실제 시간표에서 공강 요일을 계산해 LLM에 전달.
+    LLM이 공강 요일을 자기 멋대로 추측하지 못하게 함."""
+    all_days = ["월", "화", "수", "목", "금"]
+    used_days = sorted(
+        {c.get("day", "") for c in timetable if c.get("day") in all_days},
+        key=all_days.index
+    )
+    free_days = [d for d in all_days if d not in used_days]
+
+    lines = ["[요일 분석 — 사실 그대로 인용할 것]"]
+    lines.append(f"- 수업 있는 요일: {', '.join(used_days) if used_days else '없음'}")
+    if free_days:
+        lines.append(f"- 공강 요일: {', '.join(free_days)} (총 {len(free_days)}일 공강)")
+    else:
+        lines.append("- 공강 요일: 없음 (월~금 모두 수업)")
     return "\n".join(lines)
 
 
@@ -58,8 +78,16 @@ def _format_score_breakdown(scores, priority):
     return "\n".join(lines)
 
 
+def _normalize_priority_key(k):
+    """가연님 코드와 본인 코드의 키 이름 차이 보정.
+    priority_ranking은 'empty_day'로, scores dict는 'gap'으로 저장돼서 매칭이 안 되는 문제 해결."""
+    return "gap" if k == "empty_day" else k
+
+
 def build_prompt(timetable, scores, user_pref, weighted_score=None):
-    priority = user_pref.get("priority_ranking", ["time", "gap", "graduation", "style"])
+    raw_priority = user_pref.get("priority_ranking", ["time", "gap", "graduation", "style"])
+    # empty_day → gap 으로 통일 (scores dict 키와 매칭되게)
+    priority = [_normalize_priority_key(k) for k in raw_priority]
     priority_text = " > ".join([LABEL_MAP.get(k, k) for k in priority])
     weighted_text = f"{weighted_score}점" if weighted_score is not None else "정보 없음"
     score_breakdown = _format_score_breakdown(scores, priority)
@@ -68,6 +96,8 @@ def build_prompt(timetable, scores, user_pref, weighted_score=None):
 
 [추천 시간표]
 {_format_timetable(timetable)}
+
+{_format_day_analysis(timetable)}
 
 [사용자가 매긴 우선순위]
 {priority_text}
@@ -84,6 +114,8 @@ def build_prompt(timetable, scores, user_pref, weighted_score=None):
 3. **"균형 잡힌 구성", "만족도 높은 추천", "생활 리듬과 학업 목표" 같은 영혼 없는 일반론 금지.**
 4. **매 답변마다 똑같은 패턴 금지.** "1순위로 두신 X에 맞춰..."로 시작하는 거 한 번이면 충분.
 5. 점수 풀이를 모든 항목에 대해 일일이 하지 마세요. 중요한 1~2개만.
+6. **영어 변수명(empty_day, gap, time, style, graduation) 절대 출력 금지.** 반드시 한국어로: "공강", "시간대", "학업스타일", "졸업요건".
+7. **공강 요일 언급할 때는 위 [요일 분석] 데이터 그대로 사용.** "하루 종일 비는 날 없다"같이 사실과 다르게 말하지 마세요. 공강 요일이 있으면 그 요일을 정확히 명시 (예: "월·화 공강이 잘 잡혔어요").
 
 ## 자연스럽게 쓰는 법
 - 사용자가 **중요하게 본 항목 1~2개**만 자연스럽게 언급. ("학업스타일하고 공강을 가장 중요하게 보셨던 만큼...")
@@ -128,7 +160,7 @@ def generate_explanation(timetable, scores, user_pref, weighted_score=None, mode
             }
         ],
         temperature=0.2,
-        max_tokens=500
+        max_tokens=1500  # GPT-OSS-120B는 reasoning tokens도 쓰므로 여유있게
     )
 
     explanation = response.choices[0].message.content.strip()

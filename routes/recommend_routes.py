@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, session, redirect, url_for
 from services.recommend_service import recommend_timetable
+from services.llm_explainer import generate_explanation
 
 recommend_bp = Blueprint("recommend", __name__)
 
@@ -16,7 +17,7 @@ def condition():
 
     priority_scores = {
         # 팀원 알고리즘 기준 변수명으로 변환
-        "gap": int(request.form["empty_day"]),
+        "empty_day": int(request.form["empty_day"]),
         "time": int(request.form["morning"]),
         "style": int(request.form["difficulty"]),
         "graduation": int(request.form["graduation"])
@@ -29,7 +30,7 @@ def condition():
     return render_template(
         "condition.html",
         priorities={
-            "empty_day": request.form["empty_day"],
+            "gap": int(request.form["empty_day"]),
             "morning": request.form["morning"],
             "difficulty": request.form["difficulty"],
             "graduation": request.form["graduation"]
@@ -48,12 +49,7 @@ def result():
     if saved_profile is None:
         return redirect(url_for("profile.register_profile"))
 
-    grade = int(saved_profile["grade"])
-    track = saved_profile["track"]
-
     profile = session.get("profile")
-
-
 
     priority_ranking = sorted(
         priority_scores,
@@ -70,13 +66,12 @@ def result():
     preferences = {
         "target_credits": int(request.form["max_credit"]),
         "required_courses": [],
-        "time_preference": "오후" if "avoid_first_period" in request.form else "상관없음",
+        "time_preference": "상관없음",
         "gap_preference": "상관없음",
         "continuous_preference": "상관없음",
         "exam_types": ["상관없음"],
         "class_mode": "상관없음",
         "grade_dist": "상관없음",
-
         "avoid_first_period": "avoid_first_period" in request.form
     }
 
@@ -87,13 +82,26 @@ def result():
         preferences=preferences
     )
 
+    explanation = generate_explanation(
+        timetable=result.get("timetable", []),
+        scores=result.get("scores", {}),
+        user_pref={
+            "priority_ranking": priority_ranking
+        },
+        weighted_score=result.get("weighted_score")
+    )
+
+    result["explanation"] = explanation
+    session["result"] = result
+
     print("추천 결과 타입:", type(result))
     print("추천 결과:", result)
 
-    session["result"] = result
-
-    return render_template("result.html", result=result)
-
+    return render_template(
+        "result.html",
+        result=result,
+        explanation=explanation
+    )
 
 @recommend_bp.route("/register", methods=["POST"])
 def register():
@@ -108,12 +116,26 @@ def register():
     else:
         timetable = []
 
+    user_schedules = session.get("user_schedules", [])
+
+    grouped_schedules = {}
+
+    for schedule in user_schedules:
+        day = schedule["day"]
+
+        if day not in grouped_schedules:
+            grouped_schedules[day] = []
+
+        grouped_schedules[day].append(schedule)
+    print(session.get("user_schedules"))
+
     return render_template(
         "home.html",
         timetable=timetable,
         result=result,
         profile=session.get("profile"),
-        user_schedules=session.get("user_schedules", []),
-        grouped_schedules={}
+        user_schedules=user_schedules,
+        grouped_schedules=grouped_schedules
     )
+
 

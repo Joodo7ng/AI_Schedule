@@ -1,4 +1,4 @@
-#수빈님 main.py를 Flask 연결 방식으로 
+#메인화면에서 받은 사용자 정보를 recommender.py가 이해할 수 있는 형태로 넘기는 중간 연결 함수
 
 from services.data_loader import load_courses
 from services.recommender import recommend
@@ -22,8 +22,6 @@ def recommend_timetable(profile, fixed_schedules, priorities, preferences):
     else:
         allowed_tracks = [0, 3]
 
-    all_courses = courses  # 폴백용으로 원본 보관
-
     courses = [
     course for course in courses
     if int(course["semester"]) in [0, target_semester]
@@ -39,23 +37,6 @@ def recommend_timetable(profile, fixed_schedules, priorities, preferences):
     )
 ]
 
-    # 🆕 폴백: 사용 가능한 총 학점이 목표보다 부족하면 다른 학기 교양으로 보충
-    target_credits = int(preferences["target_credits"])
-    max_possible = sum(int(c.get("credit", 0)) for c in courses)
-
-    if max_possible < target_credits:
-        existing_codes = {c["code"] for c in courses}
-        extra_gen_eds = [
-            c for c in all_courses
-            if c["category"] in ["공통교양", "핵심교양"]
-            and c["code"] not in existing_codes
-        ]
-        courses.extend(extra_gen_eds)
-        print(
-            f"⚠️ 학점 부족({max_possible}<{target_credits}) "
-            f"→ 다른 학기 교양 {len(extra_gen_eds)}개 보충"
-        )
-
     if preferences.get("avoid_first_period", False):
         courses = [
             course for course in courses
@@ -69,7 +50,9 @@ def recommend_timetable(profile, fixed_schedules, priorities, preferences):
             course["name"],
             "area:", course["area"],
             "semester:", course["semester"],
-            "track:", course["major_track"]
+            "track:", course["major_track"],
+            "category:", course["category"],
+            "credit:", course["credit"]
         )
 
     user_pref = {
@@ -100,8 +83,7 @@ def recommend_timetable(profile, fixed_schedules, priorities, preferences):
         result["explanation"] = generate_explanation(
             result["timetable"],
             result["scores"],
-            user_pref,
-            weighted_score=result.get("weighted_score")
+            user_pref
         )
     else:
         result["explanation"] = ""
